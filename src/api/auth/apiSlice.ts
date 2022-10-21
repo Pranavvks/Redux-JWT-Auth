@@ -1,16 +1,9 @@
 // Actions :
 import store, { RootState } from '../../store';
 import { BaseQueryFn, createApi, FetchArgs, fetchBaseQuery, FetchBaseQueryError } from '@reduxjs/toolkit/query/react'
-import { setCredentials,logOut } from '../../features/auth/authSlice';
+import { setCredentials,logOut, Token, User } from '../../features/auth/authSlice';
 
-interface MyState
-{
-    LoginReducer : 
-    {
-        token : String
-    }
 
-}
 
 
 
@@ -19,9 +12,13 @@ const baseQuery = fetchBaseQuery({
     credentials: 'include' ,
     //sending http-only secure cookie
     //With every query the cookie is being sent 
-    prepareHeaders:(headers , {getState})=>{
-
-    }    
+    prepareHeaders:(headers,{getState})=>{
+    const token = (getState() as RootState).auth.token;
+    if (token) {
+        headers.set("authorization", `Bearer ${token}`)
+    }
+    return headers
+    },    
 
 })
 
@@ -36,17 +33,31 @@ const baseQueryWithReauth:BaseQueryFn<string | FetchArgs , unknown , FetchBaseQu
     
     const refreshResult = await baseQuery('/refresh' , api , extraOptions);
     console.log(refreshResult);
+    
+/**
+ * const initialState : User & Token  = {
+    user : {email:"" , first_name: "" , last_name: ""},
+    token: ""
+
+}
+ */
 
 
     if(refreshResult?.data)
     {
-       
-        const {user} = api.getState ;
-        api.dispatch(setCredentials({...refreshResult.data} ,user ))
+        const getState = api.getState as () => RootState;
+
+        const {Token : string} = {...refreshResult.data}
+
+        const setCredentialsData : User & Token = {
+            user:{email:getState().auth.user.email , first_name:getState().auth.user.first_name , last_name:getState().auth.user.last_name},
+            token: ""
+        }
+        api.dispatch(setCredentials(setCredentialsData))
     }
     else 
     {
-       api.dispatch(logOut());
+       api.dispatch(logOut({}));
     }
     // backend endpoint to get the refreshToken
 }

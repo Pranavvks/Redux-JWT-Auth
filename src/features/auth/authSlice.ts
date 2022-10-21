@@ -1,7 +1,7 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit"
 
 
-export interface User 
+export interface UserType 
 {
     email: string
     first_name:string
@@ -9,34 +9,35 @@ export interface User
     
 }
 
+export interface User 
+{
+    user : UserType    
+
+}
+
+// create a type of object of defined type
+
 export interface Token 
 {
     token:string
 }
 
-const initialState : User & Token = {
-    email : "" ,
-    first_name : "" ,
-    last_name : "" ,
-    token : ""
+const initialState : User & Token  = {
+    user : {email:"" , first_name: "" , last_name: ""},
+    token: ""
 
-}
+}   
 
 const authSlice = createSlice({
     name: 'auth' ,
     initialState: initialState ,
     reducers: {
         setCredentials: (state,action:PayloadAction<User&Token>)=>{
-            
-            state.email = action.payload.email ;
-            state.first_name = action.payload.first_name ;
-            state.last_name = action.payload.last_name ;
+            state.user = action.payload.user 
             state.token = action.payload.token ;
         },
-        logOut : (state , action)=>{
-            state.email = "" 
-            state.first_name = ""
-            state.last_name = ""
+        logOut : (state , _)=>{
+            state.user = {email:"" , first_name: "" , last_name:""},
             state.token = ""
         }
     }
